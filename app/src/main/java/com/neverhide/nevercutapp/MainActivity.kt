@@ -90,6 +90,14 @@ class MainActivity : android.app.Activity() {
             // serve the built-in video fixer (ff/) from the APK itself — no 32MB download, no freezing
             override fun shouldInterceptRequest(view: WebView, req: WebResourceRequest): WebResourceResponse? {
                 val path = req.url.path ?: return null
+                // v2.3: block the service worker inside the APK. The old saved copy was serving
+                // outdated builds even after site updates; with no SW the app always loads the live site.
+                if (path == "/sw.js") {
+                    val empty = java.io.ByteArrayInputStream(ByteArray(0))
+                    val resp = WebResourceResponse("text/plain", "utf-8", empty)
+                    resp.setStatusCodeAndReasonPhrase(404, "Not Found")
+                    return resp
+                }
                 if (!path.startsWith("/ff/")) return null
                 val name = path.removePrefix("/ff/")
                 if (name.contains("..")) return null
@@ -159,3 +167,4 @@ class MainActivity : android.app.Activity() {
 
     private fun toast(s: String) = runOnUiThread { Toast.makeText(this, s, Toast.LENGTH_SHORT).show() }
 }
+
