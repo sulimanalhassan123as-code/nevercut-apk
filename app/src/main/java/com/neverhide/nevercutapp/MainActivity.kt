@@ -59,7 +59,7 @@ class MainActivity : android.app.Activity() {
             useWideViewPort = true
             allowFileAccess = true
             allowContentAccess = true
-            cacheMode = WebSettings.LOAD_DEFAULT
+            cacheMode = WebSettings.LOAD_NO_CACHE // always fresh — avoids the app getting stuck on old builds
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
         }
         WebView.setWebContentsDebuggingEnabled(false)
@@ -79,7 +79,6 @@ class MainActivity : android.app.Activity() {
                 val intent = params.createIntent().apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
                     putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                    type = "video/*"
                 }
                 try { startActivityForResult(Intent.createChooser(intent, "Pick a video or photo"), FILE_CHOOSER) }
                 catch (e: android.content.ActivityNotFoundException) { filePathCallback = null; return false }
