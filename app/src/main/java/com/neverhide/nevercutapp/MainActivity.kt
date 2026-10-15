@@ -87,6 +87,22 @@ class MainActivity : android.app.Activity() {
         }
 
         web.webViewClient = object : WebViewClient() {
+            // serve the built-in video fixer (ff/) from the APK itself — no 32MB download, no freezing
+            override fun shouldInterceptRequest(view: WebView, req: WebResourceRequest): WebResourceResponse? {
+                val path = req.url.path ?: return null
+                if (!path.startsWith("/ff/")) return null
+                val name = path.removePrefix("/ff/")
+                if (name.contains("..")) return null
+                return try {
+                    val `in` = assets.open("ff/$name")
+                    val mime = when {
+                        name.endsWith(".wasm") -> "application/wasm"
+                        name.endsWith(".js") -> "text/javascript"
+                        else -> "application/octet-stream"
+                    }
+                    WebResourceResponse(mime, "utf-8", `in`)
+                } catch (e: Exception) { null }
+            }
             override fun onReceivedError(view: WebView, req: WebResourceRequest, err: WebResourceError) {
                 if (req.isForMainFrame) showOffline()
             }
